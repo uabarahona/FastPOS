@@ -1,0 +1,162 @@
+﻿@page "/sell"
+@inject AppState appState;
+
+
+<main class="sales">
+    <section class="product-container border">
+        <ul class="product-cards">
+            @foreach (var item in appState.LocalStorage.ProductStockItems)
+            {
+                <li>
+                    <div class="product-card" @onclick="@(async () => appState.AddProductToSalesOrder(item.Product))">
+                        <span class="product-name">@item.Product.Name</span>
+                        <div class="product-pricing">
+                            <div class="price">
+                                <label>Price (Bs)</label>
+                                <span>@item.Product.Price</span>
+                            </div>
+                        </div>
+                        <div class="product-info">
+                            <div class="product-stock">
+                                <span class="oi oi-box"></span>
+                                <span><strong>@item.Quantity</strong> left in stock </span>
+                            </div>
+                            <div class="badge">
+                                @item.Product.ProductSKU
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            }
+        </ul>
+
+    </section>
+
+    <section class="order-details border">
+        <div class="customer-info">
+            <div class="customer-name">
+                <label>Customer</label>
+                <span>Juan Barahona</span>
+            </div>
+            <div class="customer-code">
+                8888888
+            </div>
+        </div>
+
+        @if (appState.CurrentSalesOrder.ProductStockItems.Count > 0)
+        {
+            <ul class="line-item-cards">
+                @foreach (var item in appState.CurrentSalesOrder.ProductStockItems)
+                {
+                    <li>
+                        <div class="line-item-card">
+                            <span class="oi oi-trash icon"></span>
+                            <div class="product-details">
+                                <span class="product-name">@item.Product.Name</span>
+                                <div class="product-price">
+                                    <label>Price:</label>
+                                    <span>@item.Product.Price</span>
+                                </div>
+                            </div>
+                            <div class="quantity-controls">
+                                <span>@item.Quantity</span>
+                                <span class="oi oi-plus icon" @onclick="@(async () => appState.AddProductToSalesOrder(item.Product))"></span>
+                                <span class="oi oi-minus icon" @onclick="@(async () =>  appState.ReduceProductFromSalesOrder(item.Product))"></span>
+                            </div>
+                            <span class="total-price">@item.GetTotalPrice()</span>
+                        </div>
+                    </li>
+                }
+            </ul>
+            <div class="order-summary">
+                <div class="order-summary-content">
+                    <label>Sub Total</label>
+                    <span>@appState.CurrentSalesOrder.GetSubTotal() Bs</span>
+                </div>
+
+                <div class="order-summary-content">
+                    <label>Taxes</label>
+                    <span>@appState.CurrentSalesOrder.GetTaxes() Bs</span>
+                </div>
+
+                <div class="order-summary-content order-total">
+                    <label>Total</label>
+                    <span>@appState.CurrentSalesOrder.GetTotal() Bs</span>
+                </div>
+            </div>
+            <div class="order-payment-details">
+                <div class="payment-options">
+                    <div>
+                        <input class="payment-option" type="radio" name="payment" id="cash" value="1" checked>
+                        <label for="cash">
+                            <span>Pay with cash</span>
+                            <span class="oi oi-dollar"></span>
+                        </label>
+                    </div>
+
+                    <div>
+                        <input class="payment-option" type="radio" name="payment" id="card" value="2">
+                        <label for="card">
+                            <span>Pay with card</span>
+                            <span class="oi oi-credit-card"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <button @onclick="TooglePayDialog">
+                    <span>Pay</span>
+                    <span>@appState.CurrentSalesOrder.GetTotal()</span>
+                </button>
+            </div>
+        }
+        else
+        {
+            <span>Add products to sell</span>
+        }
+
+
+
+    </section>
+</main>
+
+
+@if (ShowPayDialog)
+{
+    <div class="dialog-container">
+        <div class="dialog">
+            <div class="payment-stage">
+                <span>Total @appState.CurrentSalesOrder.GetTotal()</span>
+                <div class="payment-step">
+                    <label>Pay</label>
+                    <input type="text" name="amount-to-pay" value="@appState.CurrentSalesOrder.GetTotal()" />
+                </div>
+                <hr />
+                <div class="payment-step">
+                    <label>Expected Change</label>
+                    <span>@appState.CurrentSalesOrder.AddRecievedAmount(appState.CurrentSalesOrder.GetTotal())</span>
+                </div>
+
+                <div class="payment-step">
+                    <button class="secondary-buttom" @onclick="TooglePayDialog">Cancel</button>
+                    <button class="main-buttom" @onclick="CompleteCurrentOrder">Complete Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    bool ShowPayDialog { get; set; }
+
+    void TooglePayDialog()
+    {
+        ShowPayDialog = !ShowPayDialog;
+    }
+
+    void CompleteCurrentOrder()
+    {
+        appState.CompleteCurrentOrder();
+        TooglePayDialog();
+    }
+}

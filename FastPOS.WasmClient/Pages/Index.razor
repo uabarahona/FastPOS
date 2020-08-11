@@ -1,0 +1,53 @@
+﻿@page "/"
+@inject AppState appState
+
+
+<main class="dashboard">
+    <section class="analytics">
+        <div class="analytic">
+            <span>TOTAL SALES</span>
+            <span>@appState.GetTotalSales()</span>
+        </div>
+
+        <div class="analytic">
+            <span>NUMBER OF SALES</span>
+            <span>@appState.SalesOrders.Count</span>
+        </div>
+    </section>
+
+    <section class="sales-order-details">
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">Code</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Total (Bs)</th>
+                    <th scope="col">State</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (appState.SalesOrders.Count > 0)
+                {
+                    for (int i = 0; i < appState.SalesOrders.Count; i++)
+                    {
+                        <tr>
+                            <td>#@(i+1)</td>
+                            <td>@appState.SalesOrders[i].CreatedDate</td>
+                            <td>@appState.SalesOrders[i].GetTotal()</td>
+                            <td>
+                                <div class="badge">
+                                    @appState.SalesOrders[i].Status
+                                </div>
+                            </td>
+                        </tr>
+
+                    }
+                }
+                else
+                {
+                    <span>There is no Sales Order Yet</span>
+                }
+            </tbody>
+        </table>
+    </section>
+</main>
